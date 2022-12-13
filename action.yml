@@ -1,0 +1,63 @@
+name: 'Deb Signing'
+description: 'Sign source and binary packages'
+inputs:
+  src-pkg-path:
+    description: Path that contains the source package files
+    required: true
+  src-pkg-name:
+    description: Name of the source package (`.source.changes` file)
+    required: true
+  bin-pkg-path:
+    description: Path that contains the binary package files
+    required: true
+  bin-pkg-name:
+    description: >
+      Name of common part of the binary packages. Will append
+      `*.changes` to select all binary packages
+    required: true
+  artifacts-name:
+    description: Name of the resulting artifacts store
+    required: true
+  gpg-signing-key:
+    description: The base64 encoded private GPG key used to sign the packages
+    required: true
+  debsign-keyid:
+    description: The public fingerprint of the GPG key used to sign the packages
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Install tools
+      shell: bash
+      run: |
+        export DEBIAN_FRONTEND=noninteractive
+        export DEBIAN_PRIORITY=critical
+        export DEBCONF_NOWARNINGS=yes
+        sudo apt-get update
+        sudo apt-get install -q -y devscripts equivs
+
+    - name: Configure GPG Key
+      shell: bash
+      run: |
+        echo -n "${{ inputs.gpg-signing-key }}" | base64 --decode | gpg --import
+
+    - name: Download Artifacts
+      uses: actions/download-artifact@fb598a63ae348fa914e94cd0ff38f362e927b741 # v3.0.0
+      with:
+        path: artifacts
+
+    - name: Sign source package
+      shell: bash
+      run: debsign -k${{ inputs.debsign-keyid }} --re-sign ${{ inputs.src-pkg-path}}/${{ inputs.src-pkg-name }}
+
+    - name: Sign binary packages
+      shell: bash
+      run: debsign -k${{ inputs.debsign-keyid }} --re-sign ${{ inputs.bin-pkg-path }}/${{ inputs.bin-pkg-name }}*.changes
+
+    - name: Store signed packages
+      uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # v3.1.0
+      with:
+        name: ${{ inputs.artifacts-name }}
+        path: |
+          ${{ inputs.src-pkg-path}}//*
+          ${{ inputs.bin-pkg-path }}/*
