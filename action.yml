@@ -30,7 +30,7 @@ runs:
     - name: Install tools
       shell: bash
       run: |
-        echo "::group::\e[32mInstall tools"
+        echo -e "::group::\e[32mInstall tools"
         export DEBIAN_FRONTEND=noninteractive
         export DEBIAN_PRIORITY=critical
         export DEBCONF_NOWARNINGS=yes
@@ -41,7 +41,7 @@ runs:
     - name: Configure GPG Key
       shell: bash
       run: |
-        echo "::group::\e[32mConfigure GPG key"
+        echo -e "::group::\e[32mConfigure GPG key"
         echo -n "${{ inputs.gpg-signing-key }}" | base64 --decode | gpg --import
         echo "::endgroup::"
 
@@ -53,14 +53,14 @@ runs:
     - name: Sign source package
       shell: bash
       run: |
-        echo "::group::\e[32mSign source package"
+        echo -e "::group::\e[32mSign source package"
         debsign -k${{ inputs.debsign-keyid }} --re-sign ${{ inputs.src-pkg-path}}/${{ inputs.src-pkg-name }}
         echo "::endgroup::"
 
     - name: Sign binary packages
       shell: bash
       run: |
-        echo "::group::\e[32mSign binary packages"
+        echo -e "::group::\e[32mSign binary packages"
         debsign -k${{ inputs.debsign-keyid }} --re-sign ${{ inputs.bin-pkg-path }}/${{ inputs.bin-pkg-name }}*.changes
         echo "::endgroup::"
 
