@@ -30,16 +30,20 @@ runs:
     - name: Install tools
       shell: bash
       run: |
+        echo "::group::\e[32mInstall tools"
         export DEBIAN_FRONTEND=noninteractive
         export DEBIAN_PRIORITY=critical
         export DEBCONF_NOWARNINGS=yes
         sudo apt-get update
         sudo apt-get install -q -y devscripts equivs
+        echo "::endgroup::"
 
     - name: Configure GPG Key
       shell: bash
       run: |
+        echo "::group::\e[32mConfigure GPG key"
         echo -n "${{ inputs.gpg-signing-key }}" | base64 --decode | gpg --import
+        echo "::endgroup::"
 
     - name: Download Artifacts
       uses: actions/download-artifact@fb598a63ae348fa914e94cd0ff38f362e927b741 # v3.0.0
@@ -48,11 +52,17 @@ runs:
 
     - name: Sign source package
       shell: bash
-      run: debsign -k${{ inputs.debsign-keyid }} --re-sign ${{ inputs.src-pkg-path}}/${{ inputs.src-pkg-name }}
+      run: |
+        echo "::group::\e[32mSign source package"
+        debsign -k${{ inputs.debsign-keyid }} --re-sign ${{ inputs.src-pkg-path}}/${{ inputs.src-pkg-name }}
+        echo "::endgroup::"
 
     - name: Sign binary packages
       shell: bash
-      run: debsign -k${{ inputs.debsign-keyid }} --re-sign ${{ inputs.bin-pkg-path }}/${{ inputs.bin-pkg-name }}*.changes
+      run: |
+        echo "::group::\e[32mSign binary packages"
+        debsign -k${{ inputs.debsign-keyid }} --re-sign ${{ inputs.bin-pkg-path }}/${{ inputs.bin-pkg-name }}*.changes
+        echo "::endgroup::"
 
     - name: Store signed packages
       uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # v3.1.0
