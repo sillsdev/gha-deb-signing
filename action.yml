@@ -43,6 +43,7 @@ runs:
       run: |
         echo -e "::group::\e[32mConfigure GPG key"
         echo -n "${{ inputs.gpg-signing-key }}" | base64 --decode | gpg --import
+        echo "${{ inputs.debsign-keyid }}:6:" | gpg --import-ownertrust
         echo "::endgroup::"
 
     - name: Download Artifacts
