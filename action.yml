@@ -1,21 +1,18 @@
 name: 'Deb Signing'
 description: 'Sign source and binary packages'
 inputs:
-  src-pkg-path:
-    description: Path that contains the source package files
-    required: true
   src-pkg-name:
     description: Name of the source package (`.source.changes` file)
-    required: true
-  bin-pkg-path:
-    description: Path that contains the binary package files
     required: true
   bin-pkg-name:
     description: >
       Name of common part of the binary packages. Will append
       `*.changes` to select all binary packages
     required: true
-  artifacts-name:
+  artifacts-prefix:
+    description: Common prefix for the artifacts
+    required: true
+  artifacts-result-name:
     description: Name of the resulting artifacts store
     required: true
   gpg-signing-key:
@@ -47,28 +44,27 @@ runs:
         echo "::endgroup::"
 
     - name: Download Artifacts
-      uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # v3.0.1
+      uses: actions/download-artifact@6b208ae046db98c579e8a3aa621ab581ff575935 # v4.1.1
       with:
-        path: artifacts
+        pattern: ${{ inputs.artifacts-prefix }}*
+        merge-multiple: true
 
     - name: Sign source package
       shell: bash
       run: |
         echo -e "::group::\e[32mSign source package"
-        debsign -k${{ inputs.debsign-keyid }} --re-sign ${{ inputs.src-pkg-path}}/${{ inputs.src-pkg-name }}
+        debsign -k${{ inputs.debsign-keyid }} --re-sign ${{ inputs.src-pkg-name }}
         echo "::endgroup::"
 
     - name: Sign binary packages
       shell: bash
       run: |
         echo -e "::group::\e[32mSign binary packages"
-        debsign -k${{ inputs.debsign-keyid }} --re-sign ${{ inputs.bin-pkg-path }}/${{ inputs.bin-pkg-name }}*.changes
+        debsign -k${{ inputs.debsign-keyid }} --re-sign ${{ inputs.bin-pkg-name }}*.changes
         echo "::endgroup::"
 
     - name: Store signed packages
-      uses: actions/upload-artifact@83fd05a356d7e2593de66fc9913b3002723633cb # v3.1.1
+      uses: actions/upload-artifact@26f96dfa697d77e81fd5907df203aa23a56210a8 # v4.3.0
       with:
-        name: ${{ inputs.artifacts-name }}
-        path: |
-          ${{ inputs.src-pkg-path}}//*
-          ${{ inputs.bin-pkg-path }}/*
+        name: ${{ inputs.artifacts-result-name }}
+        path: ./**/*

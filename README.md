@@ -6,20 +6,10 @@ A GitHub action to sign debian packages.
 
 ### Inputs
 
-#### `src-pkg-path`
-
-**Required** The path that contains the source package files, e.g.
-`artifacts/keyman-srcpkg`.
-
 #### `src-pkg-name`
 
 **Required** The name of the source package, e.g.
 `keyman-srcpkg/keyman_17.0.99-1_source.changes`.
-
-#### `bin-pkg-path`
-
-**Required** The path that contains the binary package files, e.g.
-`artifacts/keyman-binarypkgs`.
 
 #### `bin-pkg-name`
 
@@ -27,7 +17,11 @@ A GitHub action to sign debian packages.
 action will append `*.changes` to select all binary packages. E.g.
 `keyman-srcpkg/keyman_17.0.99-1+`.
 
-#### `artifacts-name`
+#### `artifacts-prefix`
+
+**Required** Common prefix of all artifacts, e.g. `keyman-`.
+
+#### `artifacts-result-name`
 
 **Required** The name of the resulting artifacts, e.g. `keyman-signedpkgs`.
 
@@ -57,9 +51,8 @@ gpg --export-secret-keys YOUR_ID_HERE | base64
       - name: Sign packages
         uses: sillsdev/gha-deb-signing@v1
         with:
-          src-pkg-path: "artifacts/keyman-srcpkg"
           src-pkg-name: "keyman_${{ needs.sourcepackage.outputs.VERSION }}-1_source.changes"
-          bin-pkg-path: "artifacts/keyman-binarypkgs"
           bin-pkg-name: "keyman_${{ needs.sourcepackage.outputs.VERSION }}-1+"
-          artifacts-name: "keyman-signedpkgs"
+          artifacts-prefix: "keyman-"
+          artifacts-result-name: "keyman-signedpkgs"
 ```
